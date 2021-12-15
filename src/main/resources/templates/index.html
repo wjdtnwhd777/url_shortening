@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+    <head>
+        <meta charset="UTF-8">
+        <title>Url Shortening!</title>
+        <script type="text/javascript">
+            function convert(){
+                let orgUrl = document.getElementById('orgUrl').value;
+
+                if(!orgUrl) {
+                    alert('변경할 url은 필수 값 입니다.');
+                    return;
+                }
+                else {
+                    var apiUrl = '/shortUrl/conversion';
+                    var data = {orgUrl : orgUrl};
+                    var xhr = new XMLHttpRequest();
+
+                    xhr.onload = function () {
+                        if(this.status == '200') {
+                            document.getElementById('result').innerHTML =
+                            "변경 된 URL : <a href='"+ this.responseText +"'> http://localhost:8080/" + this.responseText + "</a>"
+                            + "<button onclick='info(\"" + this.responseText + "\")' style='margin-left: 5px;'>url 정보 조회</button>";
+
+                            //새로운 Url을 요청했기 때문에 info div는 제거
+                            document.getElementById('info').innerHTML = "";
+                        }
+                        else if(this.status == '400') {
+                            alert('변경할 URL을 제대로 입력해주세요.');
+                        }
+                        else {
+                            alert('잘못된 요청입니다.');
+                        }
+                    };
+
+                    xhr.open('POST', apiUrl, true);
+                    xhr.setRequestHeader('Content-type', 'application/json');
+                    xhr.send(JSON.stringify(data));
+                }
+            }
+
+            function info(hashUrl){
+                var apiUrl = '/shortUrl/info';
+                var data = {hashUrl : hashUrl};
+                var xhr = new XMLHttpRequest();
+
+                xhr.onload = function () {
+                    if(this.status == '200') {
+                        var info = JSON.parse(this.response);
+                        document.getElementById('info').innerHTML = "원본 URL : " + info.orgUrl + " / 요청 횟수 : " + info.callCount;
+                    }
+                    else {
+                        alert('잘못된 요청입니다.');
+                    }
+                };
+
+                xhr.open('POST', apiUrl, true);
+                xhr.setRequestHeader('Content-type', 'application/json');
+                xhr.send(JSON.stringify(data));
+            }
+        </script>
+    </head>
+    <body>
+        <div>
+            변경 할 URL (http:// | https:// 포함) : <input id="orgUrl" text="" placeholder="변경 할 URL" />
+            <input type="button" onclick="convert();" value="변경"/>
+        </div>
+        <div id="result" style="margin-top: 10px;"></div>
+        <div id="info" style="margin-top: 10px;"></div>
+    </body>
+</html>
